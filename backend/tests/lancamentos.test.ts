@@ -104,3 +104,21 @@ describe('regras de gravação', () => {
     expect((await request(app).get('/api/lancamentos?ano=2025&tipo=agua')).body.linhas).toHaveLength(0);
   });
 });
+
+describe('mensagens de validação em português', () => {
+  it('não vaza mensagens padrão do Zod em inglês', async () => {
+    const { app, db } = novoAmbiente();
+    const p = criarPonto(db, 'P', 'agua');
+    const respostas = [
+      await request(app).get('/api/lancamentos?ano=9999&tipo=agua'),
+      await request(app).get('/api/lancamentos?ano=abc&tipo=agua'),
+      await request(app).get('/api/lancamentos?ano=2026&tipo=gas'),
+      await request(app).put('/api/lancamentos/valor').send({ pontoId: p, ano: 2026, mes: 1, fornecedorId: null, valorRs: 2e9 }),
+      await request(app).put('/api/lancamentos/valor').send({ pontoId: p, ano: 2026, mes: 1, fornecedorId: null, valorRs: 'dez' }),
+    ];
+    for (const r of respostas) {
+      expect(r.status).toBe(400);
+      expect(JSON.stringify(r.body)).not.toMatch(/Number|Expected|Invalid|String|Required/);
+    }
+  });
+});

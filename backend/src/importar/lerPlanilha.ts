@@ -38,7 +38,11 @@ export function numero(v: unknown): number | null {
   if (typeof v !== 'string') return null;
   const limpo = v.replace(/R\$/g, '').replace(/\s/g, '');
   if (limpo === '' || limpo === '-') return null;
-  const n = limpo.includes(',') ? Number(limpo.replace(/\./g, '').replace(',', '.')) : Number(limpo);
+  let normalizado: string;
+  if (limpo.includes(',')) normalizado = limpo.replace(/\./g, '').replace(',', '.');
+  else if (/^\d{1,3}(\.\d{3})+$/.test(limpo)) normalizado = limpo.replace(/\./g, ''); // "1.234" em texto = milhar
+  else normalizado = limpo;
+  const n = Number(normalizado);
   return Number.isFinite(n) ? n : null;
 }
 
@@ -53,10 +57,20 @@ function celulasComTexto(ws: Worksheet, filtro: (t: string) => boolean): { linha
   return achadas;
 }
 
-function lerEnergia(ws: Worksheet, d: DadosImportados): void {
+function lerEnergia(ws: Worksheet, d: DadosImportados, ano?: number): void {
   const ancoras = celulasComTexto(ws, (t) => MESES_COMPLETOS.includes(t));
   for (const a of ancoras) {
     const mes = MESES_COMPLETOS.indexOf(norm(bruto(a.cell))) + 1;
+    // Título do bloco ("ENERGIA 2026") fica na linha acima, na coluna dos nomes das unidades. Outro ano => não importar,
+    // senão os valores sobrescreveriam, em silêncio, o mesmo mês do ano pedido.
+    if (ano !== undefined && a.linha > 1 && a.col > 1) {
+      const titulo = texto(ws.getCell(a.linha - 1, a.col - 1));
+      const anoTitulo = /\b(20\d{2})\b/.exec(titulo)?.[1];
+      if (anoTitulo && Number(anoTitulo) !== ano) {
+        d.avisos.push(`Energia: bloco "${norm(bruto(a.cell))}" em ${a.cell.address} está sob o título "${titulo}" (ano ${anoTitulo}), diferente de ${ano}; ignorado.`);
+        continue;
+      }
+    }
     const cab = a.linha + 1;
     // TOTAL só vale na linha de cabeçalho dos fornecedores (logo abaixo do título). Procurar também na linha do
     // título aceitaria tabelas como "RESUMO ANUAL" (JAN ... MAIO ... TOTAL na mesma linha) como se fossem blocos mensais.
@@ -148,9 +162,9 @@ function aba(wb: Workbook, nome: string): Worksheet {
   return ws;
 }
 
-export function lerPlanilha(wb: Workbook, opts: { abaEnergia: string; abaAgua: string }): DadosImportados {
+export function lerPlanilha(wb: Workbook, opts: { abaEnergia: string; abaAgua: string; ano?: number }): DadosImportados {
   const d: DadosImportados = { pontos: [], fornecedores: [], valores: [], consumos: [], medidores: [], avisos: [] };
-  lerEnergia(aba(wb, opts.abaEnergia), d);
+  lerEnergia(aba(wb, opts.abaEnergia), d, opts.ano);
   lerAgua(aba(wb, opts.abaAgua), d);
   return d;
 }

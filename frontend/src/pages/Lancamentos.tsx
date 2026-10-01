@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import { CelulaEditavel } from '../components/CelulaEditavel';
 import { MESES_ABREV, UNIDADE_ENERGIA, formatBRL, formatNumero } from '../format';
@@ -11,11 +11,16 @@ export function Lancamentos() {
   const [tabela, setTabela] = useState<Tabela | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
+  const sequencia = useRef(0);
   const carregar = useCallback(async () => {
+    const minha = ++sequencia.current; // só a consulta mais recente pode atualizar a tela
     try {
-      setTabela(await api.tabela(ano, tipo));
+      const t = await api.tabela(ano, tipo);
+      if (minha !== sequencia.current) return;
+      setTabela(t);
       setErro(null);
     } catch (e) {
+      if (minha !== sequencia.current) return;
       setErro(e instanceof Error ? e.message : 'Erro ao carregar');
     }
   }, [ano, tipo]);

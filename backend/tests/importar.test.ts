@@ -89,6 +89,11 @@ describe('norm e numero', () => {
     expect(numero('abc')).toBeNull();
     expect(numero(null)).toBeNull();
   });
+  it('texto com ponto de milhar e sem vírgula vale milhar, não decimal', () => {
+    expect(numero('1.234')).toBe(1234);
+    expect(numero('R$ 1.234.567')).toBe(1234567);
+    expect(numero('12.5')).toBe(12.5);
+  });
 });
 
 describe('lerPlanilha', () => {
@@ -120,6 +125,19 @@ describe('lerPlanilha', () => {
     expect(d.valores).toHaveLength(dados.valores.length);
     expect(d.avisos).toHaveLength(1);
     expect(d.avisos[0]).toMatch(/sem coluna TOTAL/);
+  });
+
+  it('ignora blocos sob título de outro ano e avisa (evita sobrescrever o ano certo)', () => {
+    const wb = planilha();
+    const e = wb.getWorksheet('ENERGIA 2026- LIVRE (TESTE WEL)')!;
+    e.getCell(1, 1).value = 'ENERGIA 2026';
+    e.mergeCells(1, 1, 1, 5);
+    e.getCell(11, 1).value = 'ENERGIA 2025';
+    e.mergeCells(11, 1, 11, 5);
+    const d = lerPlanilha(wb, { ...opts, ano: 2026 });
+    expect(d.valores.some((v) => v.tipo === 'energia' && v.mes === 5)).toBe(true);
+    expect(d.valores.some((v) => v.tipo === 'energia' && v.mes === 3)).toBe(false);
+    expect(d.avisos.join(' ')).toMatch(/2025/);
   });
 
   it('lê água: consumo e valor por local e mês (AGOS pelas 3 primeiras letras)', () => {

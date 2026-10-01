@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
 import type Database from 'better-sqlite3';
+import './zod-pt';
 import { errorHandler } from './errors';
 import { pontosRouter } from './routes/pontos';
 import { fornecedoresRouter } from './routes/fornecedores';

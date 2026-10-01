@@ -22,6 +22,7 @@ async function main() {
   const dados = lerPlanilha(wb, {
     abaEnergia: opcao('aba-energia', 'ENERGIA 2026- LIVRE (TESTE WEL)'),
     abaAgua: opcao('aba-agua', 'ÁGUA 2026'),
+    ano,
   });
 
   const db = openDb(process.env.DB_PATH ?? path.resolve(__dirname, '..', '..', 'dados.sqlite'));
