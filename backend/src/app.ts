@@ -6,6 +6,7 @@ import { errorHandler } from './errors';
 import { pontosRouter } from './routes/pontos';
 import { fornecedoresRouter } from './routes/fornecedores';
 import { lancamentosRouter } from './routes/lancamentos';
+import { dashboardRouter } from './routes/dashboard';
 
 export function createApp(db: Database.Database, opts: { staticDir?: string } = {}) {
   const app = express();
@@ -14,6 +15,7 @@ export function createApp(db: Database.Database, opts: { staticDir?: string } = 
   app.use('/api/pontos', pontosRouter(db));
   app.use('/api/fornecedores', fornecedoresRouter(db));
   app.use('/api/lancamentos', lancamentosRouter(db));
+  app.use('/api/dashboard', dashboardRouter(db));
   app.use('/api', (_req, res) => {
     res.status(404).json({ erro: 'Rota não encontrada' });
   });
