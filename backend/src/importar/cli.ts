@@ -17,7 +17,8 @@ async function main() {
   }
   const ano = Number(opcao('ano', '2026'));
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.readFile(arquivo);
+  // npm executa o script dentro de backend/; INIT_CWD é a pasta onde o usuário digitou o comando
+  await wb.xlsx.readFile(path.resolve(process.env.INIT_CWD ?? process.cwd(), arquivo));
   const dados = lerPlanilha(wb, {
     abaEnergia: opcao('aba-energia', 'ENERGIA 2026- LIVRE (TESTE WEL)'),
     abaAgua: opcao('aba-agua', 'ÁGUA 2026'),
