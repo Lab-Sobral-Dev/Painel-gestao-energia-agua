@@ -1,17 +1,18 @@
 {
   "name": "energia-agua-painel",
   "version": "1.0.0",
-  "description": "Painel web para gerenciar dados de energia e água 2026",
+  "description": "Painel interno de energia e água",
   "private": true,
   "workspaces": [
-    "backend",
-    "frontend"
+    "backend"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "build": "npm run build -w backend && npm run build -w frontend",
     "start": "npm start -w backend",
-    "test": "npm test -w backend && npm test -w frontend"
+    "test": "npm test -w backend",
+    "importar": "npm run importar -w backend --",
+    "backup": "npm run backup -w backend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
