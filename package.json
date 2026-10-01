@@ -4,17 +4,22 @@
   "description": "Painel interno de energia e água",
   "private": true,
   "workspaces": [
-    "backend"
+    "backend",
+    "frontend"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "build": "npm run build -w backend && npm run build -w frontend",
     "start": "npm start -w backend",
-    "test": "npm test -w backend",
+    "test": "npm test -w backend && npm test -w frontend",
     "importar": "npm run importar -w backend --",
     "backup": "npm run backup -w backend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "overrides": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   }
 }
