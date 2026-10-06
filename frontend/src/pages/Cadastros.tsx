@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../api';
+import { Aviso, Badge, Botao, Campo, Cartao, Selecao } from '../components/ui';
 import type { Fornecedor, Ponto, Tipo } from '../types';
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : 'Erro inesperado');
-const campo = 'rounded border border-slate-300 px-2 py-1 text-sm';
-const botao = 'rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700';
-const botaoSec = 'rounded border border-slate-300 px-2 py-1 text-sm hover:bg-slate-100';
 
 type Executar = (acao: () => Promise<unknown>) => Promise<void>;
 
@@ -39,8 +37,8 @@ export function Cadastros() {
   }
 
   return (
-    <div className="space-y-8">
-      {erro && <p className="rounded bg-red-50 p-3 text-red-700">{erro}</p>}
+    <div className="space-y-6">
+      {erro && <Aviso tom="erro">{erro}</Aviso>}
       <SecaoPontos pontos={pontos} executar={executar} />
       <SecaoFornecedores fornecedores={fornecedores} executar={executar} />
     </div>
@@ -53,8 +51,8 @@ function SecaoPontos({ pontos, executar }: { pontos: Ponto[]; executar: Executar
   const [editando, setEditando] = useState<number | null>(null);
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold">Pontos de medição</h2>
+    <Cartao className="space-y-4">
+      <h2 className="text-base font-semibold text-slate-900">Pontos de medição</h2>
       <form
         className="flex flex-wrap items-center gap-2"
         onSubmit={(e) => {
@@ -65,25 +63,25 @@ function SecaoPontos({ pontos, executar }: { pontos: Ponto[]; executar: Executar
           });
         }}
       >
-        <input className={campo} placeholder="Nome do ponto" value={nome} onChange={(e) => setNome(e.target.value)} required />
-        <select className={campo} value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)}>
+        <Campo placeholder="Nome do ponto" value={nome} onChange={(e) => setNome(e.target.value)} required />
+        <Selecao value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)}>
           <option value="energia">Energia</option>
           <option value="agua">Água</option>
-        </select>
-        <button className={botao}>Adicionar</button>
+        </Selecao>
+        <Botao type="submit">Adicionar</Botao>
       </form>
 
-      <div className="overflow-x-auto rounded bg-white shadow">
+      <div className="overflow-x-auto rounded-lg border border-slate-200">
         <table className="min-w-full text-sm">
-          <thead className="bg-slate-100 text-left">
+          <thead className="border-b border-slate-200 bg-slate-50 text-left">
             <tr>
-              <th className="px-2 py-2">Nome</th>
-              <th className="px-2 py-2">Tipo</th>
-              <th className="px-2 py-2">Matrícula</th>
-              <th className="px-2 py-2">Hidrômetro</th>
-              <th className="px-2 py-2">Localização</th>
-              <th className="px-2 py-2">Situação</th>
-              <th className="px-2 py-2"></th>
+              <th className="px-3 py-2 font-medium text-slate-600">Nome</th>
+              <th className="px-3 py-2 font-medium text-slate-600">Tipo</th>
+              <th className="px-3 py-2 font-medium text-slate-600">Matrícula</th>
+              <th className="px-3 py-2 font-medium text-slate-600">Hidrômetro</th>
+              <th className="px-3 py-2 font-medium text-slate-600">Localização</th>
+              <th className="px-3 py-2 font-medium text-slate-600">Situação</th>
+              <th className="px-3 py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -91,26 +89,28 @@ function SecaoPontos({ pontos, executar }: { pontos: Ponto[]; executar: Executar
               editando === p.id ? (
                 <EditarPonto key={p.id} ponto={p} aoFechar={() => setEditando(null)} executar={executar} />
               ) : (
-                <tr key={p.id} className="border-t">
-                  <td className="px-2 py-1">{p.nome}</td>
-                  <td className="px-2 py-1">{p.tipo === 'energia' ? 'Energia' : 'Água'}</td>
-                  <td className="px-2 py-1">{p.matricula ?? ''}</td>
-                  <td className="px-2 py-1">{p.hidrometro ?? ''}</td>
-                  <td className="px-2 py-1">{p.localizacao ?? ''}</td>
-                  <td className="px-2 py-1">{p.ativo ? 'Ativo' : 'Inativo'}</td>
-                  <td className="space-x-2 px-2 py-1 text-right">
-                    <button className={botaoSec} onClick={() => setEditando(p.id)}>
+                <tr key={p.id} className="border-t border-slate-100">
+                  <td className="px-3 py-1.5 text-slate-800">{p.nome}</td>
+                  <td className="px-3 py-1.5 text-slate-600">{p.tipo === 'energia' ? 'Energia' : 'Água'}</td>
+                  <td className="px-3 py-1.5 text-slate-600">{p.matricula ?? ''}</td>
+                  <td className="px-3 py-1.5 text-slate-600">{p.hidrometro ?? ''}</td>
+                  <td className="px-3 py-1.5 text-slate-600">{p.localizacao ?? ''}</td>
+                  <td className="px-3 py-1.5">
+                    <Badge tom={p.ativo ? 'verde' : 'cinza'}>{p.ativo ? 'Ativo' : 'Inativo'}</Badge>
+                  </td>
+                  <td className="space-x-2 px-3 py-1.5 text-right">
+                    <Botao variante="secundario" onClick={() => setEditando(p.id)}>
                       Editar
-                    </button>
-                    <button className={botaoSec} onClick={() => executar(() => api.pontos.atualizar(p.id, { ativo: !p.ativo }))}>
+                    </Botao>
+                    <Botao variante="secundario" onClick={() => executar(() => api.pontos.atualizar(p.id, { ativo: !p.ativo }))}>
                       {p.ativo ? 'Inativar' : 'Ativar'}
-                    </button>
-                    <button
-                      className={botaoSec}
+                    </Botao>
+                    <Botao
+                      variante="perigo"
                       onClick={() => confirm(`Excluir "${p.nome}"?`) && executar(() => api.pontos.excluir(p.id))}
                     >
                       Excluir
-                    </button>
+                    </Botao>
                   </td>
                 </tr>
               ),
@@ -118,7 +118,7 @@ function SecaoPontos({ pontos, executar }: { pontos: Ponto[]; executar: Executar
           </tbody>
         </table>
       </div>
-    </section>
+    </Cartao>
   );
 }
 
@@ -128,24 +128,23 @@ function EditarPonto({ ponto, aoFechar, executar }: { ponto: Ponto; aoFechar: ()
   const [hidrometro, setHidrometro] = useState(ponto.hidrometro ?? '');
   const [localizacao, setLocalizacao] = useState(ponto.localizacao ?? '');
   return (
-    <tr className="border-t bg-blue-50">
-      <td className="px-2 py-1">
-        <input className={campo} value={nome} onChange={(e) => setNome(e.target.value)} />
+    <tr className="border-t border-slate-100 bg-orange-50/60">
+      <td className="px-3 py-1.5">
+        <Campo value={nome} onChange={(e) => setNome(e.target.value)} />
       </td>
-      <td className="px-2 py-1">{ponto.tipo === 'energia' ? 'Energia' : 'Água'}</td>
-      <td className="px-2 py-1">
-        <input className={campo} value={matricula} onChange={(e) => setMatricula(e.target.value)} />
+      <td className="px-3 py-1.5 text-slate-600">{ponto.tipo === 'energia' ? 'Energia' : 'Água'}</td>
+      <td className="px-3 py-1.5">
+        <Campo value={matricula} onChange={(e) => setMatricula(e.target.value)} />
       </td>
-      <td className="px-2 py-1">
-        <input className={campo} value={hidrometro} onChange={(e) => setHidrometro(e.target.value)} />
+      <td className="px-3 py-1.5">
+        <Campo value={hidrometro} onChange={(e) => setHidrometro(e.target.value)} />
       </td>
-      <td className="px-2 py-1">
-        <input className={campo} value={localizacao} onChange={(e) => setLocalizacao(e.target.value)} />
+      <td className="px-3 py-1.5">
+        <Campo value={localizacao} onChange={(e) => setLocalizacao(e.target.value)} />
       </td>
       <td></td>
-      <td className="space-x-2 px-2 py-1 text-right">
-        <button
-          className={botao}
+      <td className="space-x-2 px-3 py-1.5 text-right">
+        <Botao
           onClick={() =>
             executar(async () => {
               await api.pontos.atualizar(ponto.id, { nome, matricula, hidrometro, localizacao });
@@ -154,10 +153,10 @@ function EditarPonto({ ponto, aoFechar, executar }: { ponto: Ponto; aoFechar: ()
           }
         >
           Salvar
-        </button>
-        <button className={botaoSec} onClick={aoFechar}>
+        </Botao>
+        <Botao variante="secundario" onClick={aoFechar}>
           Cancelar
-        </button>
+        </Botao>
       </td>
     </tr>
   );
@@ -166,8 +165,8 @@ function EditarPonto({ ponto, aoFechar, executar }: { ponto: Ponto; aoFechar: ()
 function SecaoFornecedores({ fornecedores, executar }: { fornecedores: Fornecedor[]; executar: Executar }) {
   const [nome, setNome] = useState('');
   return (
-    <section className="space-y-3">
-      <h2 className="text-lg font-semibold">Fornecedores de energia</h2>
+    <Cartao className="space-y-4">
+      <h2 className="text-base font-semibold text-slate-900">Fornecedores de energia</h2>
       <form
         className="flex gap-2"
         onSubmit={(e) => {
@@ -178,30 +177,30 @@ function SecaoFornecedores({ fornecedores, executar }: { fornecedores: Fornecedo
           });
         }}
       >
-        <input className={campo} placeholder="Nome do fornecedor" value={nome} onChange={(e) => setNome(e.target.value)} required />
-        <button className={botao}>Adicionar</button>
+        <Campo placeholder="Nome do fornecedor" value={nome} onChange={(e) => setNome(e.target.value)} required />
+        <Botao type="submit">Adicionar</Botao>
       </form>
-      <ul className="divide-y rounded bg-white shadow">
+      <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
         {fornecedores.map((f) => (
           <li key={f.id} className="flex items-center justify-between px-3 py-2 text-sm">
-            <span>{f.nome}</span>
+            <span className="text-slate-800">{f.nome}</span>
             <span className="space-x-2">
-              <button
-                className={botaoSec}
+              <Botao
+                variante="secundario"
                 onClick={() => {
                   const novo = prompt('Novo nome do fornecedor', f.nome);
                   if (novo && novo.trim()) executar(() => api.fornecedores.atualizar(f.id, novo.trim()));
                 }}
               >
                 Renomear
-              </button>
-              <button className={botaoSec} onClick={() => confirm(`Excluir "${f.nome}"?`) && executar(() => api.fornecedores.excluir(f.id))}>
+              </Botao>
+              <Botao variante="perigo" onClick={() => confirm(`Excluir "${f.nome}"?`) && executar(() => api.fornecedores.excluir(f.id))}>
                 Excluir
-              </button>
+              </Botao>
             </span>
           </li>
         ))}
       </ul>
-    </section>
+    </Cartao>
   );
 }
