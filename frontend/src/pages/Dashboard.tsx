@@ -63,7 +63,7 @@ export function Dashboard() {
                   <YAxis stroke="#64748b" fontSize={12} />
                   <Tooltip formatter={(v: number) => formatBRL(v)} />
                   <Legend />
-                  <Line type="monotone" dataKey="valor" name="Valor (R$)" stroke="#c2410c" strokeWidth={2} connectNulls={false} />
+                  <Line type="monotone" dataKey="valor" name="Valor (R$)" stroke="#FB6602" strokeWidth={2} connectNulls={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -78,7 +78,7 @@ export function Dashboard() {
                   <XAxis dataKey="nome" stroke="#64748b" fontSize={12} />
                   <YAxis stroke="#64748b" fontSize={12} />
                   <Tooltip formatter={(v: number) => formatBRL(v)} />
-                  <Bar dataKey="valor" name="Valor (R$)" fill="#c2410c" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="valor" name="Valor (R$)" fill="#FB6602" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -97,7 +97,7 @@ export function TipoToggle({ tipo, onChange }: { tipo: Tipo; onChange: (t: Tipo)
           key={t}
           onClick={() => onChange(t)}
           className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-            tipo === t ? (t === 'energia' ? 'bg-orange-700 text-white' : 'bg-sky-700 text-white') : 'text-slate-600 hover:bg-slate-50'
+            tipo === t ? (t === 'energia' ? 'bg-orange-600 text-white' : 'bg-sky-700 text-white') : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
           {t === 'energia' ? 'Energia' : 'Água'}

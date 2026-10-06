@@ -41,7 +41,7 @@ export function CelulaEditavel({ valor, rotulo, onSalvar }: Props) {
       onChange={(e) => setTexto(e.target.value)}
       onBlur={aoSair}
       className={`w-24 rounded border px-1 py-0.5 text-right text-sm focus:outline-none focus:ring-2 ${
-        erro ? 'border-red-500 bg-red-50 focus:ring-red-500/40' : 'border-slate-300 bg-white focus:border-orange-500 focus:ring-orange-500/40'
+        erro ? 'border-red-500 bg-red-50 focus:ring-red-500/40' : 'border-slate-300 bg-white focus:border-orange-600 focus:ring-orange-600/40'
       }`}
     />
   );

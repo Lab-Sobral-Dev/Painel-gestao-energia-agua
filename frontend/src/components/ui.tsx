@@ -1,11 +1,11 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
 
-const foco = 'focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500';
+const foco = 'focus:outline-none focus:ring-2 focus:ring-orange-600/40 focus:border-orange-600';
 
 type VarianteBotao = 'primario' | 'secundario' | 'perigo';
 
 const estilosBotao: Record<VarianteBotao, string> = {
-  primario: 'bg-orange-700 text-white hover:bg-orange-800',
+  primario: 'bg-orange-600 text-white hover:bg-orange-700',
   secundario: 'border border-slate-300 text-slate-700 hover:bg-slate-50',
   perigo: 'border border-slate-300 text-slate-700 hover:border-red-300 hover:bg-red-50 hover:text-red-700',
 };

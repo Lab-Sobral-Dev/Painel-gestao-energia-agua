@@ -21,7 +21,7 @@ export function App() {
               key={a.id}
               onClick={() => setAba(a.id)}
               className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                aba === a.id ? 'bg-white text-orange-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                aba === a.id ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {a.rotulo}
