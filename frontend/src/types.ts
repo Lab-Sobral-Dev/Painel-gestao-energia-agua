@@ -39,4 +39,6 @@ export interface Dashboard {
   totalAnualConsumo: Celula;
   ultimoMes: { mes: number; valor: number; variacaoPct: Celula } | null;
   porPonto: { pontoId: number; nome: string; totalValor: Celula; totalConsumo: Celula }[];
+  porFornecedorMensal: { fornecedorId: number; nome: string; meses: Celula[] }[];
+  porPontoMensal: { pontoId: number; nome: string; valor: Celula[]; consumo: Celula[] }[];
 }

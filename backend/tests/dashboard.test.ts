@@ -45,6 +45,80 @@ describe('resumir', () => {
   });
 });
 
+describe('porFornecedorMensal', () => {
+  it('soma o valor de cada fornecedor por mês, somando todos os pontos', () => {
+    const t: Tabela = {
+      ano: 2026,
+      tipo: 'energia',
+      fornecedores: [
+        { id: 1, nome: 'Fornecedor A' },
+        { id: 2, nome: 'Fornecedor B' },
+      ],
+      linhas: [
+        {
+          pontoId: 1,
+          nome: 'Ponto 1',
+          ativo: true,
+          valores: [
+            { fornecedorId: 1, meses: doze({ 0: 100 }) },
+            { fornecedorId: 2, meses: doze({ 0: 30 }) },
+          ],
+          consumo: doze({}),
+          totalValor: doze({ 0: 130 }),
+        },
+        {
+          pontoId: 2,
+          nome: 'Ponto 2',
+          ativo: true,
+          valores: [
+            { fornecedorId: 1, meses: doze({ 0: 50 }) },
+            { fornecedorId: 2, meses: doze({}) },
+          ],
+          consumo: doze({}),
+          totalValor: doze({ 0: 50 }),
+        },
+      ],
+      totalGeralValor: doze({ 0: 180 }),
+      totalGeralConsumo: doze({}),
+    };
+
+    const d = resumir(t);
+
+    expect(d.porFornecedorMensal).toEqual([
+      { fornecedorId: 1, nome: 'Fornecedor A', meses: doze({ 0: 150 }) },
+      { fornecedorId: 2, nome: 'Fornecedor B', meses: doze({ 0: 30 }) },
+    ]);
+  });
+
+  it('vem vazio quando não há fornecedores (água)', () => {
+    const d = resumir(tabela(doze({ 0: 80 }), doze({})));
+    expect(d.porFornecedorMensal).toEqual([]);
+  });
+});
+
+describe('porPontoMensal', () => {
+  it('expõe a série mensal de valor e consumo de cada ponto', () => {
+    const t: Tabela = {
+      ano: 2026,
+      tipo: 'agua',
+      fornecedores: [],
+      linhas: [
+        { pontoId: 4, nome: 'PRODUÇÃO/STA', ativo: true, valores: [], consumo: doze({ 0: 12 }), totalValor: doze({ 0: 200 }) },
+        { pontoId: 5, nome: 'ADM/CQ', ativo: true, valores: [], consumo: doze({ 0: 3 }), totalValor: doze({ 0: 40 }) },
+      ],
+      totalGeralValor: doze({ 0: 240 }),
+      totalGeralConsumo: doze({ 0: 15 }),
+    };
+
+    const d = resumir(t);
+
+    expect(d.porPontoMensal).toEqual([
+      { pontoId: 4, nome: 'PRODUÇÃO/STA', valor: doze({ 0: 200 }), consumo: doze({ 0: 12 }) },
+      { pontoId: 5, nome: 'ADM/CQ', valor: doze({ 0: 40 }), consumo: doze({ 0: 3 }) },
+    ]);
+  });
+});
+
 describe('GET /api/dashboard', () => {
   it('responde para um ano sem nenhum cadastro', async () => {
     const { app } = novoAmbiente();

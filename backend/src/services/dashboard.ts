@@ -10,6 +10,8 @@ export interface Dashboard {
   totalAnualConsumo: Celula;
   ultimoMes: { mes: number; valor: number; variacaoPct: Celula } | null;
   porPonto: { pontoId: number; nome: string; totalValor: Celula; totalConsumo: Celula }[];
+  porFornecedorMensal: { fornecedorId: number; nome: string; meses: Celula[] }[];
+  porPontoMensal: { pontoId: number; nome: string; valor: Celula[]; consumo: Celula[] }[];
 }
 
 export function resumir(t: Tabela): Dashboard {
@@ -47,5 +49,18 @@ export function resumir(t: Tabela): Dashboard {
       totalValor: somar(l.totalValor),
       totalConsumo: somar(l.consumo),
     })),
+    porFornecedorMensal: t.fornecedores.map((f) => ({
+      fornecedorId: f.id,
+      nome: f.nome,
+      meses: porMes((i) => somar(t.linhas.map((l) => l.valores.find((v) => v.fornecedorId === f.id)?.meses[i] ?? null))),
+    })),
+    porPontoMensal: t.linhas.map((l) => ({
+      pontoId: l.pontoId,
+      nome: l.nome,
+      valor: l.totalValor,
+      consumo: l.consumo,
+    })),
   };
 }
+
+const porMes = (f: (i: number) => Celula): Celula[] => Array.from({ length: 12 }, (_, i) => f(i));

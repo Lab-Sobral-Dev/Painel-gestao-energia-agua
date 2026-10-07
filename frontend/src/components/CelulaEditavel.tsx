@@ -40,8 +40,10 @@ export function CelulaEditavel({ valor, rotulo, onSalvar }: Props) {
       inputMode="decimal"
       onChange={(e) => setTexto(e.target.value)}
       onBlur={aoSair}
-      className={`w-24 rounded border px-1 py-0.5 text-right text-sm focus:outline-none focus:ring-2 ${
-        erro ? 'border-red-500 bg-red-50 focus:ring-red-500/40' : 'border-slate-300 bg-white focus:border-orange-600 focus:ring-orange-600/40'
+      className={`w-24 rounded border border-transparent bg-transparent px-1 py-0.5 text-right text-sm transition-colors focus:outline-none focus:ring-2 ${
+        erro
+          ? 'border-red-500 bg-red-50 focus:ring-red-500/40'
+          : 'hover:bg-slate-100 focus:border-orange-600 focus:bg-white focus:ring-orange-600/40'
       }`}
     />
   );

@@ -1,9 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { api } from '../api';
 import { Aviso, Campo, Cartao } from '../components/ui';
 import { MESES_ABREV, UNIDADE_ENERGIA, formatBRL, formatNumero } from '../format';
-import type { Dashboard as Dados, Tipo } from '../types';
+import type { Celula, Dashboard as Dados, Tipo } from '../types';
+
+const PONTO_PRODUCAO_AGUA = 'PRODUÇÃO/STA';
+const CORES_FORNECEDOR = ['#FB6602', '#0369a1', '#16a34a', '#9333ea', '#ca8a04', '#dc2626'];
 
 export function Dashboard() {
   const [ano, setAno] = useState(new Date().getFullYear());
@@ -26,6 +41,23 @@ export function Dashboard() {
   const serieMensal = dados?.mensal.map((m) => ({ mes: MESES_ABREV[m.mes - 1], valor: m.valor, consumo: m.consumo })) ?? [];
   const serieAnual = dados?.porPonto.map((p) => ({ nome: p.nome, valor: p.totalValor ?? 0 })) ?? [];
   const semDados = dados !== null && dados.totalAnualValor === null && dados.totalAnualConsumo === null;
+
+  const serieFornecedorMensal = MESES_ABREV.map((mes, i) => {
+    const linha: Record<string, string | number> = { mes };
+    for (const f of dados?.porFornecedorMensal ?? []) linha[f.nome] = f.meses[i] ?? 0;
+    return linha;
+  });
+
+  const somaMeses = (meses: Celula[]): number => meses.reduce((soma: number, v) => soma + (v ?? 0), 0);
+  const corPorFornecedorId = new Map((dados?.porFornecedorMensal ?? []).map((f, i) => [f.fornecedorId, CORES_FORNECEDOR[i % CORES_FORNECEDOR.length]]));
+  const totalPorFornecedor = (dados?.porFornecedorMensal ?? [])
+    .map((f) => ({ fornecedorId: f.fornecedorId, nome: f.nome, total: somaMeses(f.meses) }))
+    .sort((a, b) => b.total - a.total);
+  const totalFornecedores = totalPorFornecedor.reduce((s, f) => s + f.total, 0);
+
+  const pontoProducao = dados?.porPontoMensal.find((p) => p.nome === PONTO_PRODUCAO_AGUA) ?? null;
+  const serieProducaoAgua =
+    pontoProducao?.valor.map((valor, i) => ({ mes: MESES_ABREV[i], valor, consumo: pontoProducao.consumo[i] })) ?? [];
 
   return (
     <div className="space-y-6">
@@ -69,6 +101,47 @@ export function Dashboard() {
             </div>
           </Cartao>
 
+          {tipo === 'energia' && dados.porFornecedorMensal.length > 0 && (
+            <Cartao>
+              <h2 className="mb-4 text-sm font-semibold text-slate-700">Custo por fornecedor (R$)</h2>
+              <div className="h-72">
+                <ResponsiveContainer>
+                  <BarChart data={serieFornecedorMensal}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="mes" stroke="#64748b" fontSize={12} />
+                    <YAxis stroke="#64748b" fontSize={12} />
+                    <Tooltip formatter={(v: number) => formatBRL(v)} />
+                    {dados.porFornecedorMensal.map((f) => (
+                      <Bar
+                        key={f.fornecedorId}
+                        dataKey={f.nome}
+                        name={f.nome}
+                        stackId="fornecedores"
+                        fill={corPorFornecedorId.get(f.fornecedorId)}
+                        stroke="#fff"
+                        strokeWidth={2}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+                {totalPorFornecedor.map((f) => {
+                  const pct = totalFornecedores > 0 ? Math.round((f.total / totalFornecedores) * 100) : 0;
+                  return (
+                    <li key={f.fornecedorId} className="flex items-center gap-2 text-sm text-slate-600">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: corPorFornecedorId.get(f.fornecedorId) }} />
+                      <span className="font-medium text-slate-700">{f.nome}</span>
+                      <span className="text-slate-500">
+                        {formatBRL(f.total)} · {pct}%
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Cartao>
+          )}
+
           <Cartao>
             <h2 className="mb-4 text-sm font-semibold text-slate-700">Total do ano por ponto (R$)</h2>
             <div className="h-72">
@@ -83,6 +156,26 @@ export function Dashboard() {
               </ResponsiveContainer>
             </div>
           </Cartao>
+
+          {tipo === 'agua' && pontoProducao && (
+            <Cartao>
+              <h2 className="mb-4 text-sm font-semibold text-slate-700">{PONTO_PRODUCAO_AGUA} — consumo e custo</h2>
+              <div className="h-72">
+                <ResponsiveContainer>
+                  <ComposedChart data={serieProducaoAgua}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="mes" stroke="#64748b" fontSize={12} />
+                    <YAxis yAxisId="consumo" stroke="#64748b" fontSize={12} />
+                    <YAxis yAxisId="valor" orientation="right" stroke="#64748b" fontSize={12} />
+                    <Tooltip formatter={(v: number, name: string) => (name === 'Custo (R$)' ? formatBRL(v) : `${formatNumero(v)} m³`)} />
+                    <Legend />
+                    <Bar yAxisId="consumo" dataKey="consumo" name="Consumo (m³)" fill="#0369a1" radius={[4, 4, 0, 0]} />
+                    <Line yAxisId="valor" type="monotone" dataKey="valor" name="Custo (R$)" stroke="#FB6602" strokeWidth={2} connectNulls={false} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </Cartao>
+          )}
         </>
       )}
     </div>

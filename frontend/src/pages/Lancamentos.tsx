@@ -52,13 +52,15 @@ export function Lancamentos() {
       )}
 
       {tabela && tabela.linhas.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50">
-              <tr>
-                <th className="px-3 py-2 text-left font-medium text-slate-600">Ponto / linha</th>
+        <div className="max-h-[70vh] overflow-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+          <table className="min-w-full table-fixed text-sm">
+            <thead className="sticky top-0 z-20 bg-slate-50">
+              <tr className="border-b border-slate-200">
+                <th className="sticky left-0 z-10 w-52 border-r border-slate-200 bg-slate-50 px-3 py-2.5 text-left font-medium text-slate-600">
+                  Ponto / linha
+                </th>
                 {MESES_ABREV.map((m) => (
-                  <th key={m} className="px-2 py-2 text-right font-medium text-slate-600">
+                  <th key={m} className="border-r border-slate-200 px-2 py-2.5 text-right font-medium text-slate-600 last:border-r-0">
                     {m}
                   </th>
                 ))}
@@ -70,18 +72,18 @@ export function Lancamentos() {
               ))}
             </tbody>
             <tfoot className="border-t-2 border-orange-200 bg-orange-50 font-semibold text-slate-900">
-              <tr>
-                <td className="px-3 py-2">Total geral (R$)</td>
+              <tr className="border-b border-orange-200">
+                <td className="sticky left-0 z-10 w-52 border-r border-orange-200 bg-orange-50 px-3 py-2">Total geral (R$)</td>
                 {tabela.totalGeralValor.map((v, i) => (
-                  <td key={i} className="px-2 py-2 text-right">
+                  <td key={i} className="border-r border-orange-200 px-2 py-2 text-right last:border-r-0">
                     {formatBRL(v)}
                   </td>
                 ))}
               </tr>
               <tr>
-                <td className="px-3 py-2">Consumo total ({unidade})</td>
+                <td className="sticky left-0 z-10 w-52 border-r border-orange-200 bg-orange-50 px-3 py-2">Consumo total ({unidade})</td>
                 {tabela.totalGeralConsumo.map((v, i) => (
-                  <td key={i} className="px-2 py-2 text-right">
+                  <td key={i} className="border-r border-orange-200 px-2 py-2 text-right last:border-r-0">
                     {formatNumero(v)}
                   </td>
                 ))}
@@ -109,22 +111,28 @@ function LinhaPonto({
   aoSalvar: () => Promise<void>;
   par: boolean;
 }) {
-  const fundo = par ? 'bg-white' : 'bg-slate-50/50';
+  const fundo = par ? 'bg-white' : 'bg-slate-50';
   return (
     <>
       <tr className={`border-t border-slate-200 ${fundo}`}>
-        <td colSpan={13} className="px-3 py-1.5 font-semibold text-slate-800">
+        <td
+          className="sticky left-0 z-10 w-52 truncate border-r border-l-4 border-r-slate-200 border-l-orange-500 bg-inherit px-2.5 py-2 font-semibold text-slate-800"
+          title={linha.nome}
+        >
           {linha.nome}
           {!linha.ativo && <span className="ml-2 text-xs font-normal text-slate-500">(inativo)</span>}
         </td>
+        <td colSpan={12} className="bg-inherit" />
       </tr>
       {linha.valores.map((v) => {
         const nome = tabela.fornecedores.find((f) => f.id === v.fornecedorId)?.nome ?? 'Valor (R$)';
         return (
-          <tr key={v.fornecedorId ?? 'agua'} className={fundo}>
-            <td className="px-3 py-1 pl-6 text-slate-600">{nome}</td>
+          <tr key={v.fornecedorId ?? 'agua'} className={`${fundo} border-b border-slate-200 hover:bg-orange-50/40`}>
+            <td className="sticky left-0 z-10 w-52 truncate border-r border-slate-200 bg-inherit px-3 py-1.5 pl-6 text-slate-600" title={nome}>
+              {nome}
+            </td>
             {v.meses.map((valor, i) => (
-              <td key={i} className="px-1 py-1 text-right">
+              <td key={i} className="border-r border-slate-200 px-1 py-1 text-right last:border-r-0">
                 <CelulaEditavel
                   valor={valor}
                   rotulo={`${linha.nome} ${nome} ${MESES_ABREV[i]}`}
@@ -138,10 +146,12 @@ function LinhaPonto({
           </tr>
         );
       })}
-      <tr className={fundo}>
-        <td className="px-3 py-1 pl-6 text-slate-600">Consumo ({unidade})</td>
+      <tr className={`${fundo} border-b border-slate-200 hover:bg-orange-50/40`}>
+        <td className="sticky left-0 z-10 w-52 truncate border-r border-slate-200 bg-inherit px-3 py-1.5 pl-6 text-slate-600" title={`Consumo (${unidade})`}>
+          Consumo ({unidade})
+        </td>
         {linha.consumo.map((q, i) => (
-          <td key={i} className="px-1 py-1 text-right">
+          <td key={i} className="border-r border-slate-200 px-1 py-1 text-right last:border-r-0">
             <CelulaEditavel
               valor={q}
               rotulo={`${linha.nome} consumo ${MESES_ABREV[i]}`}
@@ -153,10 +163,12 @@ function LinhaPonto({
           </td>
         ))}
       </tr>
-      <tr className={`font-medium text-slate-900 ${fundo}`}>
-        <td className="px-3 py-1 pl-6">Total (R$)</td>
+      <tr className={`font-medium text-slate-900 ${fundo} border-b border-slate-200 hover:bg-orange-50/40`}>
+        <td className="sticky left-0 z-10 w-52 truncate border-r border-slate-200 bg-inherit px-3 py-1.5 pl-6" title="Total (R$)">
+          Total (R$)
+        </td>
         {linha.totalValor.map((v, i) => (
-          <td key={i} className="px-2 py-1 text-right">
+          <td key={i} className="border-r border-slate-200 px-2 py-1 text-right last:border-r-0">
             {formatBRL(v)}
           </td>
         ))}
