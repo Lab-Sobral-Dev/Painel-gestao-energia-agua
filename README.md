@@ -8,7 +8,7 @@ Sistema interno (sem login) para lançar e acompanhar consumo e custo de energia
 
 ## Requisitos
 
-- Node.js 20 ou superior
+- Node.js 22 ou superior (exigência do `better-sqlite3@13`)
 
 ## Primeiros passos (desenvolvimento)
 
@@ -38,6 +38,25 @@ npm run importar -- "ENERGIA E ÁGUA 2026.xlsx" --ano 2026
 - Por padrão lê as abas **"ENERGIA 2026- LIVRE (TESTE WEL)"** (valores e consumo) e **"ÁGUA 2026"**. A aba "ENERGIA 2026- LIVRE" não tem a coluna CONSUMO. Para usar outras abas: `--aba-energia "..."` e `--aba-agua "..."`.
 - Hidrômetro, matrícula e localização dos pontos de água são preenchidos pelo hidrômetro quando ele consta na tabela de medidores da planilha. O que faltar, complete na tela **Cadastros**. Valores já preenchidos nunca são sobrescritos.
 - Ao final o importador lista fornecedores, pontos e avisos. Confira os nomes: variações de digitação na planilha viram cadastros distintos.
+
+## Acoplamento ao Gestão SBR
+
+O painel abre dentro do Gestão SBR (Central de Relatórios › Manutenção › Energia e Água), pelo Protocolo de Acoplamento: o Gestão autentica no AD e entrega um token JWT HS256 de 60 s em `GET /api/auth/sso?token=...`, que vira uma sessão por cookie. Detalhes do contrato: `docs/PROTOCOLO-DE-ACOPLAMENTO.md` no repo do Gestão SBR.
+
+- `DOCKING_SECRET`: segredo compartilhado com o Gestão (mesmo valor dos dois lados). **Definido, todas as rotas `/api` exigem a sessão do SSO.** Ausente, o painel fica aberto como antes (uso local) e o SSO responde 503.
+- `SESSION_SECRET` (opcional): chave do cookie de sessão; por padrão é derivada do `DOCKING_SECRET`.
+- `SESSION_COOKIE_SECURE=true`: só quando servido por HTTPS (subdomínio público).
+- `FRAME_ANCESTORS` (opcional): sobrescreve o `frame-ancestors` do CSP; o padrão libera `gestao.labsobralnet.ind` e `gestao.laboratoriosobral.com.br`.
+- O `token` precisa ter `produto = painel-energia-agua` e `sub` = login AD.
+
+Docker (o `.214` usa o auto-deploy do Gestão, que chama `docker build` e `docker run`):
+
+```bash
+docker build -t painel-energia-agua .
+docker run -d -p 127.0.0.1:3011:3000 -v painel-energia-agua-data:/data --env-file .env painel-energia-agua
+```
+
+O banco fica no volume `/data` (`DB_PATH=/data/dados.sqlite`); nunca apague o volume. Para importar a planilha no container: `docker cp "ENERGIA E ÁGUA 2026.xlsx" <container>:/tmp/` e `docker exec <container> npm run importar -- /tmp/"ENERGIA E ÁGUA 2026.xlsx" --ano 2026`.
 
 ## Backup
 

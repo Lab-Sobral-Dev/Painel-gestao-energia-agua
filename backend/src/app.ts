@@ -8,10 +8,21 @@ import { pontosRouter } from './routes/pontos';
 import { fornecedoresRouter } from './routes/fornecedores';
 import { lancamentosRouter } from './routes/lancamentos';
 import { dashboardRouter } from './routes/dashboard';
+import { authRouter, cabecalhoFrame, exigirSessao, type ConfigAcoplamento } from './acoplamento';
 
-export function createApp(db: Database.Database, opts: { staticDir?: string } = {}) {
+export function createApp(
+  db: Database.Database,
+  opts: { staticDir?: string; acoplamento?: ConfigAcoplamento } = {},
+) {
   const app = express();
   app.use(express.json());
+
+  // Acoplamento ao Gestão SBR: só liga quando o index.ts passa a config (testes e uso local ficam abertos).
+  if (opts.acoplamento) {
+    app.use(cabecalhoFrame(opts.acoplamento));
+    app.use('/api/auth', authRouter(opts.acoplamento));
+    app.use('/api', exigirSessao(opts.acoplamento));
+  }
 
   app.use('/api/pontos', pontosRouter(db));
   app.use('/api/fornecedores', fornecedoresRouter(db));
