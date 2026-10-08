@@ -1,6 +1,6 @@
 node_modules/
 dist/
-*.sqlite
 backend/backups/
 .env
 .superpowers/
+Manual da Marca [Lab. Sobral].pdf
