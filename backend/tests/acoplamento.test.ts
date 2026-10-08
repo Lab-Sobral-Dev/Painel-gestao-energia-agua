@@ -7,7 +7,6 @@ import { openDb } from '../src/db';
 
 const cfg: ConfigAcoplamento = {
   dockingSecret: 'segredo-de-teste',
-  cookieSecure: false,
   frameAncestors: "'self' http://gestao.labsobralnet.ind",
 };
 
@@ -50,19 +49,15 @@ describe('GET /api/auth/sso', () => {
     const res = await request(novoApp({ ...cfg, dockingSecret: undefined })).get('/api/auth/sso?token=x');
     expect(res.status).toBe(503);
   });
-  it('token válido → 302 para / com cookie host-only HttpOnly Lax', async () => {
+  it('token válido → 302 para / com cookie host-only HttpOnly SameSite=None Secure', async () => {
     const res = await request(novoApp()).get(`/api/auth/sso?token=${valido()}`);
     expect(res.status).toBe(302);
     expect(res.headers.location).toBe('/');
     const cookie = String(res.headers['set-cookie']);
     expect(cookie).toContain('HttpOnly');
-    expect(cookie).toContain('SameSite=Lax');
+    expect(cookie).toContain('SameSite=None');
+    expect(cookie).toContain('Secure');
     expect(cookie).not.toContain('Domain=');
-    expect(cookie).not.toContain('Secure');
-  });
-  it('SESSION_COOKIE_SECURE liga Secure', async () => {
-    const res = await request(novoApp({ ...cfg, cookieSecure: true })).get(`/api/auth/sso?token=${valido()}`);
-    expect(String(res.headers['set-cookie'])).toContain('Secure');
   });
   it('respeita next interno e ignora next externo', async () => {
     const app = novoApp();

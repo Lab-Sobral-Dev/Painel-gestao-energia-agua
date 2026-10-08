@@ -21,8 +21,6 @@ export interface ConfigAcoplamento {
   dockingSecret?: string;
   /** Chave de assinatura do cookie. Padrão: derivada do dockingSecret. */
   sessionSecret?: string;
-  /** Secure só atrás de HTTPS (subdomínio público). Sob http interno, false. */
-  cookieSecure: boolean;
   frameAncestors: string;
 }
 
@@ -30,7 +28,6 @@ export function configDoAmbiente(env: NodeJS.ProcessEnv = process.env): ConfigAc
   return {
     dockingSecret: env.DOCKING_SECRET || undefined,
     sessionSecret: env.SESSION_SECRET || undefined,
-    cookieSecure: env.SESSION_COOKIE_SECURE === 'true',
     frameAncestors: env.FRAME_ANCESTORS || FRAME_ANCESTORS_PADRAO,
   };
 }
@@ -118,9 +115,9 @@ export function authRouter(cfg: ConfigAcoplamento): Router {
       res.status(401).json({ erro: 'Token inválido ou expirado' });
       return;
     }
-    // Cookie host-only (sem Domain), exigido pelo Protocolo de Acoplamento §3.5.
-    const attrs = ['Path=/', 'HttpOnly', 'SameSite=Lax', `Max-Age=${VIDA_SESSAO_S}`];
-    if (cfg.cookieSecure) attrs.push('Secure');
+    // Cookie host-only (sem Domain). O painel roda em iframe de outro site (gestao.laboratoriosobral.com.br
+    // embutindo *.labsobralnet.ind): só SameSite=None; Secure persiste, e Secure exige HTTPS (vhost :443).
+    const attrs = ['Path=/', 'HttpOnly', 'SameSite=None', 'Secure', `Max-Age=${VIDA_SESSAO_S}`];
     res.setHeader('Set-Cookie', `${COOKIE}=${assinarSessao(login, cfg)}; ${attrs.join('; ')}`);
     res.redirect(302, destinoSeguro(req.query.next));
   });

@@ -45,7 +45,7 @@ O painel abre dentro do Gestão SBR (Central de Relatórios › Manutenção ›
 
 - `DOCKING_SECRET`: segredo compartilhado com o Gestão (mesmo valor dos dois lados). **Definido, todas as rotas `/api` exigem a sessão do SSO.** Ausente, o painel fica aberto como antes (uso local) e o SSO responde 503.
 - `SESSION_SECRET` (opcional): chave do cookie de sessão; por padrão é derivada do `DOCKING_SECRET`.
-- `SESSION_COOKIE_SECURE=true`: só quando servido por HTTPS (subdomínio público).
+- O cookie de sessão é `SameSite=None; Secure` (o painel roda em iframe de outro site), então **precisa ser servido por HTTPS** (no .214, vhost `:443` com o wildcard `*.labsobralnet.ind`).
 - `FRAME_ANCESTORS` (opcional): sobrescreve o `frame-ancestors` do CSP; o padrão libera `gestao.labsobralnet.ind` e `gestao.laboratoriosobral.com.br`.
 - O `token` precisa ter `produto = painel-energia-agua` e `sub` = login AD.
 
